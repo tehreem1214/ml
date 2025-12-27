@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuraVibe NLP Dashboard 💖</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #ffd6f6, #fff5c3, #ffe6cc, #e5ccff, #f9e0ff);
+    background-size: 400% 400%;
+    animation: gradientBG 10s ease infinite;
+    overflow-y: auto;
+  }
+  @keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .cute-item {
+    position: absolute;
+    font-size: 28px;
+    opacity: 0.9;
+    animation: float 8s infinite ease-in-out;
+  }
+  @keyframes float {
+    0% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-30px) rotate(15deg); }
+    100% { transform: translateY(0) rotate(0); }
+  }
+  .kitty-container {
+    width: 100%;
+    text-align: center;
+    padding: 100px 0 50px 0;
+    position: relative;
+  }
+  .kitty {
+    width: 220px;
+    animation: bounce 2s infinite ease-in-out;
+    z-index: 10;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+  .speech {
+    display: inline-block;
+    margin-top: 15px;
+    font-size: 22px;
+    background: #fffafc;
+    border-radius: 25px;
+    padding: 15px 25px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.1);
+    color: #ff69b4;
+  }
+  .container {
+    max-width: 800px;
+    background: #fffafc;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.15);
+    text-align: center;
+    margin: 50px auto;
+    position: relative;
+    z-index: 1;
+  }
+  h1 { color: #5e2b97; margin-bottom: 20px; }
+  textarea {
+    width: 100%;
+    height: 150px;
+    border-radius: 12px;
+    border: 2px solid #ccc;
+    padding: 10px;
+    font-size: 16px;
+    resize: vertical;
+    outline: none;
+  }
+  .btn-group { margin: 25px 0; }
+  button {
+    margin: 8px;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  #vocabBtn { background-color: #b57edc; color: white; }
+  #bowBtn { background-color: #f5deb3; color: black; }
+  #embedBtn { background-color: #111; color: white; }
+  button:hover { transform: scale(1.07); }
+  .output {
+    background: #f7f4ff;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: monospace;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    border: 1px solid #ddd;
+  }
+  #enableSoundBtn {
+    position: fixed;
+    left: 50%;
+    top: 20px;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: #ff9ad1;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    cursor: pointer;
+    display: none;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Floating cute icons -->
+<script>
+  const icons = ["🎀", "🍬", "🧸", "🍭", "💖", "🌸", "🦋", "🐻", "🍓", "⭐"];
+  for (let i = 0; i < 30; i++) {
+    const item = document.createElement("div");
+    item.classList.add("cute-item");
+    item.textContent = icons[Math.floor(Math.random() * icons.length)];
+    item.style.left = Math.random() * 100 + "vw";
+    item.style.top = Math.random() * 100 + "vh";
+    item.style.animationDelay = Math.random() * 8 + "s";
+    document.body.appendChild(item);
+  }
+</script>
+
+<!-- Kitty Section -->
+<div class="kitty-container">
+  <img src="kitty.png" alt="Cute Kitty" class="kitty" />
+  <div class="speech">Hello! Mr. Javed 💖 How can I help you today? 🐾</div>
+</div>
+
+<!-- NLP Analyzer Section -->
+<div class="container" id="nlpContainer">
+  <h1>🌸 Girly Vibes NLP Text Analyzer 🌸</h1>
+  <textarea id="inputText" placeholder="Type or paste any text here..."></textarea>
+  <div class="btn-group">
+    <button id="vocabBtn">🟣 Vocabulary</button>
+    <button id="bowBtn">🟡 Bag of Words</button>
+    <button id="embedBtn">⚫ Word Embeddings</button>
+  </div>
+  <div class="output" id="outputBox">✨ Output will appear here...</div>
+</div>
+
+<button id="enableSoundBtn">Tap to enable sound</button>
+
+<script>
+  const inputText = document.getElementById('inputText');
+  const outputBox = document.getElementById('outputBox');
+
+  // --- Text Preprocessing ---
+  const stopwords = ["is","am","are","was","were","to","for","and","in","on","of","the","a","an","by","with","it","this","that","as","at","be"];
+  function preprocess(text) {
+    return text
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, "")
+      .split(/\s+/)
+      .filter(word => word && !stopwords.includes(word));
+  }
+
+  // --- Vocabulary ---
+  document.getElementById('vocabBtn').addEventListener('click', () => {
+    const words = preprocess(inputText.value);
+    const uniqueWords = [...new Set(words)];
+    outputBox.textContent = `🟣 Vocabulary (${uniqueWords.length} unique words):\n\n${uniqueWords.join(", ")}`;
+  });
+
+  // --- Bag of Words ---
+  document.getElementById('bowBtn').addEventListener('click', () => {
+    const words = preprocess(inputText.value);
+    const bow = {};
+    words.forEach(w => bow[w] = (bow[w] || 0) + 1);
+    let output = "🟡 Bag of Words (word frequency):\n\n";
+    for (const [word, count] of Object.entries(bow)) output += `${word}: ${count}\n`;
+    outputBox.textContent = output;
+  });
+
+  // --- Simulated Word Embeddings ---
+  document.getElementById('embedBtn').addEventListener('click', () => {
+    const words = preprocess(inputText.value);
+    const uniqueWords = [...new Set(words)];
+    let output = "⚫ Word Embeddings (Simulated 3D vectors):\n\n";
+    uniqueWords.forEach(w => {
+      const vec = [Math.random().toFixed(3), Math.random().toFixed(3), Math.random().toFixed(3)];
+      output += `${w}: [${vec.join(", ")}]\n`;
+    });
+    outputBox.textContent = output;
+  });
+
+  // --- Kitty Speech ---
+  window.onload = function() {
+    const TEXT = "Hello! Mr. Javed, how can I help you today?";
+    const msgFactory = (text) => {
+      const m = new SpeechSynthesisUtterance(text);
+      m.pitch = 1.3; m.rate = 1; m.volume = 1; m.lang = "en-US";
+      return m;
+    };
+    function speakNow(text) {
+      const m = msgFactory(text);
+      const voices = speechSynthesis.getVoices();
+      if (voices && voices.length > 0) {
+        const female = voices.find(v => v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira") || v.lang.toLowerCase().includes("en"));
+        m.voice = female || voices[0];
+      }
+      speechSynthesis.cancel();
+      speechSynthesis.speak(m);
+    }
+    function trySpeak() {
+      if (speechSynthesis.getVoices().length > 0) { speakNow(TEXT); return; }
+      speechSynthesis.onvoiceschanged = () => { speakNow(TEXT); };
+      setTimeout(() => {
+        if (!speechSynthesis.speaking && speechSynthesis.getVoices().length > 0) speakNow(TEXT);
+      }, 800);
+    }
+    const btn = document.getElementById('enableSoundBtn');
+    btn.addEventListener('click', () => {
+      speakNow(TEXT);
+      btn.style.display = 'none';
+    });
+    trySpeak();
+    setTimeout(() => {
+      if (!speechSynthesis.speaking) btn.style.display = 'block';
+    }, 1200);
+  };
+</script>
+
+</body>
+</html>
